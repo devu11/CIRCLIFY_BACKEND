@@ -6,8 +6,14 @@ import NotificationModel from "../models/notificationModel.js";
 // getAllUsers
 
 export const getAllUser = async (req, res) => {
+  const { searchQuery } = req.query;
   try {
     let users = await UserModel.find();
+    if (searchQuery) {
+      users = users.filter((user) =>
+        user.username.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
     users = users.map((user) => {
       const { password, ...otherDetails } = user._doc;
       return otherDetails;
@@ -38,7 +44,7 @@ export const getUser = async (req, res) => {
 // Update a User
 export const updateUser = async (req, res) => {
   const id = req.params.id;
-  // fetch data from body of request
+
   const { _id, currentUserAdminStatus, password } = req.body;
 
   if (id === _id) {
@@ -142,7 +148,6 @@ export const getFollowedUsers = async (req, res) => {
   try {
     const user = await UserModel.findById(userId);
     if (user) {
-      // Fetch the list of followed users
       const followedUsers = await UserModel.find({
         _id: { $in: user.following },
       });
@@ -154,3 +159,43 @@ export const getFollowedUsers = async (req, res) => {
     res.status(500).json(error);
   }
 };
+
+export const getUserProfile = async (req, res) => {
+  const userId = req.params.userId;
+  const currentUserId = req.userId;
+  try {
+    const user = await UserModel.findById(userId);
+    if (user) {
+      if (user.isPrivate) {
+        if (user.followers.includes(currentUserId) || user.following.includes(currentUserId)) {
+          res.status(200).json(user);
+        } else {
+          res.status(403).json("This user's profile is private.");
+        }
+      } else {
+        res.status(200).json(user);
+      }
+    } else {
+      res.status(404).json("User not found");
+    }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
+
+export const updateUserPrivacy = async (req, res) => {
+  const { id } = req.params;
+  const { isPrivate } = req.body;
+ 
+  try {
+     const user = await UserModel.findByIdAndUpdate(id, { isPrivate }, { new: true });
+     if (user) {
+       res.status(200).json(user);
+     } else {
+       res.status(404).json({ message: "User not found" });
+     }
+  } catch (error) {
+     res.status(500).json({ message: "Server error" });
+  }
+ };

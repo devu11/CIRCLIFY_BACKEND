@@ -45,6 +45,10 @@ const UserSchema = mongoose.Schema(
                 type: Boolean,
                 default: false ,
               },
+              isPrivate: {
+                type: Boolean,
+                default: false,
+              },
             role: {
                 type: String,
                 enum: ['user', 'admin'], // Define the roles your application supports
