@@ -19,7 +19,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {      
  cors: {
-    origin: "https://circlify-theta.vercel.app",
+    origin: "https://circlify-theta.vercel.app/",
  },
 });
 
